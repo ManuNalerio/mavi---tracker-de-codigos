@@ -16,10 +16,10 @@ function parseCode(code) {
 }
 
 const STATUS = {
-  exists:    { label:"YA EXISTE",              color:"#f87171", bg:"#1e0f0f", border:"#5c1f1f" },
-  session:   { label:"REGISTRADO ESTA SESIÓN", color:"#fbbf24", bg:"#1a1400", border:"#54400a" },
-  available: { label:"DISPONIBLE",             color:"#4ade80", bg:"#0b1a0f", border:"#1a5c30" },
-  partial:   { label:"COINCIDENCIAS",          color:"#94a3b8", bg:"#181818", border:"#2e2e2e" },
+  exists:    { label:"YA EXISTE",              color:"#f87171", bg:"#fff0f0", border:"#ffbbbb" },
+  session:   { label:"REGISTRADO ESTA SESIÓN", color:"#fbbf24", bg:"#fffbe6", border:"#f0d060" },
+  available: { label:"DISPONIBLE",             color:"#4ade80", bg:"#e6fff0", border:"#5cb87a" },
+  partial:   { label:"COINCIDENCIAS",          color:"#94a3b8", bg:"#f0f0f0", border:"#cccccc" },
 };
 
 let sessionGenerated = new Set();
@@ -295,16 +295,16 @@ export default function App() {
 
   // ── STYLES ────────────────────────────────────────────────────────────────
   const S = {
-    card:    { background:"#1a1a1a", border:"1px solid #2a2a2a", borderRadius:10, padding:20, marginBottom:14 },
-    label:   { fontSize:10, letterSpacing:3, color:"#888", marginBottom:7, display:"block" },
-    input:   { width:"100%", background:"#111", border:"1px solid #333", borderRadius:7,
-               padding:"10px 12px", color:"#e8e8e8", fontSize:13, outline:"none",
+    card:    { background:"#ffffff", border:"1px solid #d0d0d0", borderRadius:10, padding:20, marginBottom:14 },
+    label:   { fontSize:10, letterSpacing:3, color:"#666666", marginBottom:7, display:"block" },
+    input:   { width:"100%", background:"#f0f0f0", border:"1px solid #333", borderRadius:7,
+               padding:"10px 12px", color:"#1a1a1a", fontSize:13, outline:"none",
                boxSizing:"border-box", fontFamily:"'Inter',sans-serif" },
-    btn:     { padding:"10px 20px", background:"#e8e8e8", color:"#111", border:"none",
+    btn:     { padding:"10px 20px", background:"#ffffff", color:"#f0f0f0", border:"none",
                borderRadius:7, cursor:"pointer", fontSize:12, fontWeight:700,
                fontFamily:"'Inter',sans-serif" },
-    ghost:   { padding:"8px 14px", background:"transparent", color:"#666",
-               border:"1px solid #2a2a2a", borderRadius:7, cursor:"pointer",
+    ghost:   { padding:"8px 14px", background:"transparent", color:"#777777",
+               border:"1px solid #d0d0d0", borderRadius:7, cursor:"pointer",
                fontSize:11, fontFamily:"'Inter',sans-serif" },
   };
 
@@ -313,27 +313,27 @@ export default function App() {
     const safe = q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
     const parts = text.split(new RegExp(`(${safe})`, "gi"));
     return parts.map((p,i) => i%2===1
-      ? <span key={i} style={{ background:"#facc15", color:"#111", fontWeight:700, borderRadius:2, padding:"0 1px" }}>{p}</span>
+      ? <span key={i} style={{ background:"#facc15", color:"#f0f0f0", fontWeight:700, borderRadius:2, padding:"0 1px" }}>{p}</span>
       : p);
   };
 
   // ── RENDER ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ minHeight:"100vh", background:"#111111", color:"#e8e8e8", fontFamily:"'Inter',sans-serif" }}>
+    <div style={{ minHeight:"100vh", background:"#f5f5f5", color:"#1a1a1a", fontFamily:"'Inter',sans-serif" }}>
 
       {/* ── HEADER ── */}
-      <div style={{ background:"#141414", borderBottom:"1px solid #2a2a2a", padding:"20px 28px 0" }}>
+      <div style={{ background:"#e8e8e8", borderBottom:"1px solid #d0d0d0", padding:"20px 28px 0" }}>
         <div style={{ maxWidth:880, margin:"0 auto" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:2 }}>
             <div>
-              <div style={{ fontSize:10, letterSpacing:4, color:"#444" }}>SISTEMA DE GESTIÓN · PREFIJO {PREFIX}</div>
+              <div style={{ fontSize:10, letterSpacing:4, color:"#999999" }}>SISTEMA DE GESTIÓN · PREFIJO {PREFIX}</div>
               <div style={{ display:"flex", alignItems:"baseline", gap:10, margin:"4px 0" }}>
-                <h1 style={{ fontSize:21, fontWeight:700, margin:0, color:"#fff" }}>Generador de Códigos</h1>
-                <span style={{ fontSize:21, fontWeight:700, color:"#bbb" }}>{PREFIX}</span>
+                <h1 style={{ fontSize:21, fontWeight:700, margin:0, color:"#111111" }}>Generador de Códigos</h1>
+                <span style={{ fontSize:21, fontWeight:700, color:"#444444" }}>{PREFIX}</span>
               </div>
-              <div style={{ fontSize:11, color:"#555", marginBottom:16 }}>
+              <div style={{ fontSize:11, color:"#888888", marginBottom:16 }}>
                 {CODES.length.toLocaleString()} artículos · marca {PREFIX} · {newCodes.length} nuevos esta sesión ·{" "}
-                <span style={{ color:"#444" }}>{Object.keys(allBrands).length} marcas · {totalProducts.toLocaleString()} productos total</span>
+                <span style={{ color:"#999999" }}>{Object.keys(allBrands).length} marcas · {totalProducts.toLocaleString()} productos total</span>
               </div>
             </div>
             {/* Botón cargar Excel */}
@@ -358,8 +358,8 @@ export default function App() {
               { id:"list",   label:`Sesión (${newCodes.length})` },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{
-                padding:"8px 18px", background: tab===t.id ? "#e8e8e8" : "transparent",
-                color: tab===t.id ? "#111" : "#555", border:"none",
+                padding:"8px 18px", background: tab===t.id ? "#1a1a1a" : "transparent",
+                color: tab===t.id ? "#f0f0f0" : "#888888", border:"none",
                 borderBottom: tab===t.id ? "2px solid #e8e8e8" : "2px solid transparent",
                 cursor:"pointer", fontSize:12, fontFamily:"'Inter',sans-serif",
                 borderRadius: tab===t.id ? "4px 4px 0 0" : 0, transition:"all .15s",
@@ -377,9 +377,9 @@ export default function App() {
             {[["verify","🔍 Verificar código"],["generate","✨ Generar código nuevo"]].map(([m,lbl]) => (
               <button key={m} onClick={() => { setMode(m); resetAll(); }}
                 style={{ padding:"8px 18px",
-                  background: mode===m ? "#e8e8e8" : "#1a1a1a",
-                  color: mode===m ? "#111" : "#666",
-                  border:`1px solid ${mode===m ? "#e8e8e8" : "#2a2a2a"}`,
+                  background: mode===m ? "#1a1a1a" : "#f0f0f0",
+                  color: mode===m ? "#f0f0f0" : "#777777",
+                  border:`1px solid ${mode===m ? "#1a1a1a" : "#d0d0d0"}`,
                   borderRadius:8, cursor:"pointer", fontSize:12,
                   fontFamily:"'Inter',sans-serif", fontWeight: mode===m ? 700 : 400 }}>
                 {lbl}
@@ -392,8 +392,8 @@ export default function App() {
           <div style={S.card}>
             <span style={S.label}>CÓDIGO DEL ARTÍCULO (sin "{PREFIX}-")</span>
             <div style={{ display:"flex", gap:8 }}>
-              <div style={{ background:"#111", border:"1px solid #2a2a2a", borderRadius:7,
-                padding:"10px 12px", color:"#555", fontSize:14, display:"flex",
+              <div style={{ background:"#f0f0f0", border:"1px solid #d0d0d0", borderRadius:7,
+                padding:"10px 12px", color:"#888888", fontSize:14, display:"flex",
                 alignItems:"center", whiteSpace:"nowrap" }}>{PREFIX}-</div>
               <input value={inputCode} onChange={e => setInputCode(e.target.value)}
                 onKeyDown={e => e.key==="Enter" && handleCheck()}
@@ -409,15 +409,15 @@ export default function App() {
               <div style={{ background:st.bg, border:`1px solid ${st.border}`, borderRadius:10, padding:20, marginBottom:14 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:10 }}>
                   <div>
-                    <div style={{ fontWeight:700, fontSize:18, color:"#e8e8e8", fontFamily:"monospace", marginBottom:4 }}>
+                    <div style={{ fontWeight:700, fontSize:18, color:"#1a1a1a", fontFamily:"monospace", marginBottom:4 }}>
                       {PREFIX}-{checkResult.code}
                     </div>
                     {getName(checkResult.code) && (
-                      <div style={{ fontSize:12, color:"#aaa", marginBottom:2 }}>📦 {getName(checkResult.code)}</div>
+                      <div style={{ fontSize:12, color:"#555555", marginBottom:2 }}>📦 {getName(checkResult.code)}</div>
                     )}
                     {getPrice(checkResult.code) && (
-                      <div style={{ fontSize:12, color:"#888" }}>
-                        💲 Lista: <span style={{ color:"#e8e8e8", fontWeight:600 }}>{fmt(getPrice(checkResult.code))}</span>
+                      <div style={{ fontSize:12, color:"#666666" }}>
+                        💲 Lista: <span style={{ color:"#1a1a1a", fontWeight:600 }}>{fmt(getPrice(checkResult.code))}</span>
                       </div>
                     )}
                   </div>
@@ -430,22 +430,22 @@ export default function App() {
                 {/* Partial matches */}
                 {checkResult.status === "partial" && checkResult.matches && (
                   <div style={{ marginTop:14 }}>
-                    <div style={{ fontSize:10, letterSpacing:2, color:"#666", marginBottom:8 }}>COINCIDENCIAS</div>
+                    <div style={{ fontSize:10, letterSpacing:2, color:"#777777", marginBottom:8 }}>COINCIDENCIAS</div>
                     <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
                       {checkResult.matches.slice(0,12).map(code => (
-                        <div key={code} style={{ background:"#1a1a1a", border:"1px solid #2a2a2a",
+                        <div key={code} style={{ background:"#ffffff", border:"1px solid #d0d0d0",
                           borderRadius:7, padding:"8px 12px", display:"flex",
                           justifyContent:"space-between", alignItems:"center" }}>
                           <div>
-                            <div style={{ fontSize:13, fontWeight:600, color:"#e8e8e8", fontFamily:"monospace" }}>
+                            <div style={{ fontSize:13, fontWeight:600, color:"#1a1a1a", fontFamily:"monospace" }}>
                               {PREFIX}-{hl(code, checkResult.code)}
                             </div>
-                            {getName(code) && <div style={{ fontSize:11, color:"#666", marginTop:2 }}>{getName(code)}</div>}
+                            {getName(code) && <div style={{ fontSize:11, color:"#777777", marginTop:2 }}>{getName(code)}</div>}
                           </div>
                           <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3 }}>
-                            {getPrice(code) && <span style={{ fontSize:11, color:"#888" }}>{fmt(getPrice(code))}</span>}
-                            <span style={{ fontSize:10, color:"#f87171", background:"#1e0f0f",
-                              border:"1px solid #5c1f1f", padding:"2px 8px", borderRadius:4 }}>EXISTE</span>
+                            {getPrice(code) && <span style={{ fontSize:11, color:"#666666" }}>{fmt(getPrice(code))}</span>}
+                            <span style={{ fontSize:10, color:"#f87171", background:"#fff0f0",
+                              border:"1px solid #ffaaaa", padding:"2px 8px", borderRadius:4 }}>EXISTE</span>
                           </div>
                         </div>
                       ))}
@@ -455,7 +455,7 @@ export default function App() {
 
                 {checkResult.status === "available" && (
                   <button onClick={() => handleRegister(checkResult.code)}
-                    style={{ ...S.btn, marginTop:14, background:"#4ade80", color:"#0b1a0f" }}>
+                    style={{ ...S.btn, marginTop:14, background:"#4ade80", color:"#e6fff0" }}>
                     ✓ Registrar {PREFIX}-{checkResult.code} como nuevo
                   </button>
                 )}
@@ -467,17 +467,17 @@ export default function App() {
           {alternatives && (alternatives.results.length > 0 || alternatives.siblings.length > 0) && (
             <div style={S.card}>
               {alternatives.results.length > 0 && (<>
-                <div style={{ fontSize:10, letterSpacing:2, color:"#888", marginBottom:10 }}>CÓDIGOS DISPONIBLES SIMILARES</div>
+                <div style={{ fontSize:10, letterSpacing:2, color:"#666666", marginBottom:10 }}>CÓDIGOS DISPONIBLES SIMILARES</div>
                 <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:14 }}>
                   {alternatives.results.map(alt => (
-                    <div key={alt.code} style={{ background:"#111", border:"1px solid #2a2a2a",
+                    <div key={alt.code} style={{ background:"#f0f0f0", border:"1px solid #d0d0d0",
                       borderRadius:7, padding:"8px 12px",
                       display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                       <span style={{ fontSize:13, fontWeight:600, color:"#4ade80", fontFamily:"monospace" }}>
                         {PREFIX}-{alt.code}
                       </span>
                       <button onClick={() => handleRegister(alt.code)}
-                        style={{ ...S.btn, padding:"5px 12px", fontSize:11, background:"#4ade80", color:"#0b1a0f" }}>
+                        style={{ ...S.btn, padding:"5px 12px", fontSize:11, background:"#4ade80", color:"#e6fff0" }}>
                         Registrar
                       </button>
                     </div>
@@ -485,11 +485,11 @@ export default function App() {
                 </div>
               </>)}
               {alternatives.siblings.length > 0 && (<>
-                <div style={{ fontSize:10, letterSpacing:2, color:"#666", marginBottom:8 }}>FAMILIA EXISTENTE</div>
+                <div style={{ fontSize:10, letterSpacing:2, color:"#777777", marginBottom:8 }}>FAMILIA EXISTENTE</div>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
                   {alternatives.siblings.map(s => (
-                    <span key={s} style={{ background:"#1a1a1a", border:"1px solid #2a2a2a",
-                      borderRadius:5, padding:"4px 10px", fontSize:11, color:"#888", fontFamily:"monospace" }}>
+                    <span key={s} style={{ background:"#ffffff", border:"1px solid #d0d0d0",
+                      borderRadius:5, padding:"4px 10px", fontSize:11, color:"#666666", fontFamily:"monospace" }}>
                       {PREFIX}-{s}
                     </span>
                   ))}
@@ -515,19 +515,19 @@ export default function App() {
             <div style={S.card}>
               <span style={S.label}>PASO 2 · SELECCIONÁ EL ARTÍCULO</span>
               {nameMatches.length === 0
-                ? <div style={{ color:"#666", fontSize:13 }}>Sin resultados para "{nameQuery}"</div>
+                ? <div style={{ color:"#777777", fontSize:13 }}>Sin resultados para "{nameQuery}"</div>
                 : <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   {nameMatches.map(({ code, name }) => (
                     <div key={code} onClick={() => pickFamily(code)}
-                      style={{ background: selectedFamily?.code===code ? "#1a2a1a":"#111",
-                        border:`1px solid ${selectedFamily?.code===code ? "#1a5c30":"#2a2a2a"}`,
+                      style={{ background: selectedFamily?.code===code ? "#e6fff0":"#f0f0f0",
+                        border:`1px solid ${selectedFamily?.code===code ? "#5cb87a":"#cccccc"}`,
                         borderRadius:7, padding:"10px 14px", cursor:"pointer" }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:"#e8e8e8", fontFamily:"monospace" }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:"#1a1a1a", fontFamily:"monospace" }}>
                         {PREFIX}-{code}
                       </div>
                       <div style={{ display:"flex", gap:14, marginTop:3 }}>
-                        <span style={{ fontSize:11, color:"#888" }}>{name}</span>
-                        {getPrice(code) && <span style={{ fontSize:11, color:"#666" }}>{fmt(getPrice(code))}</span>}
+                        <span style={{ fontSize:11, color:"#666666" }}>{name}</span>
+                        {getPrice(code) && <span style={{ fontSize:11, color:"#777777" }}>{fmt(getPrice(code))}</span>}
                       </div>
                     </div>
                   ))}
@@ -538,16 +538,16 @@ export default function App() {
             {genStep >= 3 && selectedFamily && (
             <div style={S.card}>
               <span style={S.label}>PASO 3 · VARIANTE DE COLOR (opcional)</span>
-              <div style={{ fontSize:11, color:"#888", marginBottom:10 }}>
-                Familia: <span style={{ color:"#e8e8e8", fontWeight:600 }}>{PREFIX}-{selectedFamily.code}</span>
+              <div style={{ fontSize:11, color:"#666666", marginBottom:10 }}>
+                Familia: <span style={{ color:"#1a1a1a", fontWeight:600 }}>{PREFIX}-{selectedFamily.code}</span>
               </div>
               {selectedFamily.siblings.length > 0 && (
                 <div style={{ marginBottom:12 }}>
-                  <div style={{ fontSize:10, letterSpacing:2, color:"#555", marginBottom:6 }}>YA EXISTEN EN ESTA FAMILIA</div>
+                  <div style={{ fontSize:10, letterSpacing:2, color:"#888888", marginBottom:6 }}>YA EXISTEN EN ESTA FAMILIA</div>
                   <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
                     {selectedFamily.siblings.map(s => (
-                      <span key={s} style={{ background:"#1a1a1a", border:"1px solid #2a2a2a",
-                        borderRadius:5, padding:"3px 9px", fontSize:11, color:"#888", fontFamily:"monospace" }}>
+                      <span key={s} style={{ background:"#ffffff", border:"1px solid #d0d0d0",
+                        borderRadius:5, padding:"3px 9px", fontSize:11, color:"#666666", fontFamily:"monospace" }}>
                         {PREFIX}-{s}
                       </span>
                     ))}
@@ -566,18 +566,18 @@ export default function App() {
             <div style={{ background: genResult.results.length > 0 ? STATUS.available.bg : STATUS.exists.bg,
               border:`1px solid ${genResult.results.length > 0 ? STATUS.available.border : STATUS.exists.border}`,
               borderRadius:10, padding:20, marginBottom:14 }}>
-              <div style={{ fontSize:10, letterSpacing:2, color:"#888", marginBottom:8 }}>CÓDIGO GENERADO</div>
+              <div style={{ fontSize:10, letterSpacing:2, color:"#666666", marginBottom:8 }}>CÓDIGO GENERADO</div>
               {genResult.results.length > 0
                 ? <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   {genResult.results.map(alt => (
-                    <div key={alt.code} style={{ background:"#111", border:"1px solid #1a5c30",
+                    <div key={alt.code} style={{ background:"#f0f0f0", border:"1px solid #5cb87a",
                       borderRadius:7, padding:"8px 12px",
                       display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                       <span style={{ fontSize:14, fontWeight:700, color:"#4ade80", fontFamily:"monospace" }}>
                         {PREFIX}-{alt.code}
                       </span>
                       <button onClick={() => handleRegister(alt.code)}
-                        style={{ ...S.btn, padding:"5px 12px", fontSize:11, background:"#4ade80", color:"#0b1a0f" }}>
+                        style={{ ...S.btn, padding:"5px 12px", fontSize:11, background:"#4ade80", color:"#e6fff0" }}>
                         Registrar
                       </button>
                     </div>
@@ -603,30 +603,30 @@ export default function App() {
                 const price = getPrice(code);
                 const q     = searchTerm.toLowerCase();
                 return (
-                  <div key={code} style={{ background:"#1a1a1a", border:"1px solid #2a2a2a",
+                  <div key={code} style={{ background:"#ffffff", border:"1px solid #d0d0d0",
                     borderRadius:8, padding:"10px 14px",
                     display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:"#e8e8e8", fontFamily:"monospace" }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:"#1a1a1a", fontFamily:"monospace" }}>
                         {PREFIX}-{hl(code, q)}
                       </div>
-                      {name && <div style={{ fontSize:11, color:"#666", marginTop:2 }}>{hl(name, q)}</div>}
+                      {name && <div style={{ fontSize:11, color:"#777777", marginTop:2 }}>{hl(name, q)}</div>}
                     </div>
                     <div style={{ display:"flex", alignItems:"center", gap:10, marginLeft:12, flexShrink:0 }}>
-                      {price && <span style={{ fontSize:12, color:"#888", fontWeight:600 }}>{fmt(price)}</span>}
-                      <span style={{ fontSize:10, color:"#f87171", background:"#1e0f0f",
-                        border:"1px solid #5c1f1f", padding:"2px 8px", borderRadius:4 }}>EXISTE</span>
+                      {price && <span style={{ fontSize:12, color:"#666666", fontWeight:600 }}>{fmt(price)}</span>}
+                      <span style={{ fontSize:10, color:"#f87171", background:"#fff0f0",
+                        border:"1px solid #ffaaaa", padding:"2px 8px", borderRadius:4 }}>EXISTE</span>
                     </div>
                   </div>
                 );
               })}
               {filteredCodes.length === 0 && (
-                <div style={{ color:"#555", fontSize:13, padding:40, textAlign:"center" }}>
+                <div style={{ color:"#888888", fontSize:13, padding:40, textAlign:"center" }}>
                   Sin resultados para "{searchTerm}"
                 </div>
               )}
               {!searchTerm && CODES.length > 80 && (
-                <div style={{ color:"#444", fontSize:11, textAlign:"center", padding:10 }}>
+                <div style={{ color:"#999999", fontSize:11, textAlign:"center", padding:10 }}>
                   Mostrando 80 de {CODES.length} — buscá para filtrar
                 </div>
               )}
@@ -648,20 +648,20 @@ export default function App() {
                 return (
                   <div key={prefix}
                     onClick={() => { setActiveBrand(prefix); resetAll(); setTab("check"); }}
-                    style={{ background: isActive ? "#1a2a1a" : "#1a1a1a",
-                      border:`1px solid ${isActive ? "#1a5c30" : "#2a2a2a"}`,
+                    style={{ background: isActive ? "#e6fff0" : "#f8f8f8",
+                      border:`1px solid ${isActive ? "#5cb87a" : "#cccccc"}`,
                       borderRadius:9, padding:"12px 14px", cursor:"pointer", transition:"all .12s" }}>
                     <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:3 }}>
                       <span style={{ fontSize:19, fontWeight:700, fontFamily:"monospace",
-                        color: isActive ? "#4ade80" : "#e8e8e8" }}>{prefix}</span>
+                        color: isActive ? "#4ade80" : "#1a1a1a" }}>{prefix}</span>
                       {isActive && (
-                        <span style={{ fontSize:9, background:"#0b1a0f", border:"1px solid #1a5c30",
+                        <span style={{ fontSize:9, background:"#e6fff0", border:"1px solid #5cb87a",
                           color:"#4ade80", borderRadius:3, padding:"1px 5px", letterSpacing:1 }}>ACTIVA</span>
                       )}
                     </div>
-                    <div style={{ fontSize:11, color:"#555" }}>{d.codes.length} artículos</div>
+                    <div style={{ fontSize:11, color:"#888888" }}>{d.codes.length} artículos</div>
                     {Object.keys(d.prices).length > 0 && (
-                      <div style={{ fontSize:10, color:"#444", marginTop:1 }}>
+                      <div style={{ fontSize:10, color:"#999999", marginTop:1 }}>
                         {Object.keys(d.prices).length} con precio
                       </div>
                     )}
@@ -676,23 +676,23 @@ export default function App() {
         {tab === "list" && (
           <div>
             {newCodes.length === 0
-              ? <div style={{ color:"#555", fontSize:13, padding:40, textAlign:"center" }}>
+              ? <div style={{ color:"#888888", fontSize:13, padding:40, textAlign:"center" }}>
                   Todavía no registraste códigos nuevos en esta sesión.
                 </div>
               : <>
-                <div style={{ fontSize:11, color:"#555", marginBottom:14 }}>
+                <div style={{ fontSize:11, color:"#888888", marginBottom:14 }}>
                   {newCodes.length} código{newCodes.length !== 1 ? "s" : ""} registrado{newCodes.length !== 1 ? "s" : ""} esta sesión
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   {newCodes.map((item, i) => (
-                    <div key={i} style={{ background:"#1a1a1a", border:"1px solid #1a5c30",
+                    <div key={i} style={{ background:"#ffffff", border:"1px solid #5cb87a",
                       borderRadius:8, padding:"10px 14px",
                       display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                       <span style={{ fontFamily:"monospace", fontSize:14, fontWeight:600, color:"#4ade80" }}>
                         {item.full}
                       </span>
-                      <span style={{ fontSize:10, color:"#4ade80", background:"#0b1a0f",
-                        border:"1px solid #1a5c30", padding:"2px 8px", borderRadius:4 }}>NUEVO</span>
+                      <span style={{ fontSize:10, color:"#4ade80", background:"#e6fff0",
+                        border:"1px solid #5cb87a", padding:"2px 8px", borderRadius:4 }}>NUEVO</span>
                     </div>
                   ))}
                 </div>
@@ -710,13 +710,13 @@ export default function App() {
 
       {toast && (
         <div style={{ position:"fixed", bottom:20, left:"50%", transform:"translateX(-50%)",
-          background:"#222", color:"#e8e8e8", border:"1px solid #404040",
+          background:"#e0e0e0", color:"#1a1a1a", border:"1px solid #cccccc",
           padding:"9px 20px", borderRadius:8, fontSize:12,
-          boxShadow:"0 4px 20px rgba(0,0,0,.6)", zIndex:1000, whiteSpace:"nowrap" }}>
+          boxShadow:"0 4px 20px rgba(0,0,0,.15)", zIndex:1000, whiteSpace:"nowrap" }}>
           {toast}
         </div>
       )}
-      <style>{`input::placeholder{color:#555} *{font-family:'Inter',sans-serif!important}`}</style>
+      <style>{`input::placeholder{color:#aaa} *{font-family:'Inter',sans-serif!important}`}</style>
     </div>
   );
 }
