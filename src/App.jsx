@@ -90,69 +90,192 @@ export default function App() {
   }, [CODES, isAvailable]);
 
   // ── CARGAR EXCEL ──────────────────────────────────────────────────────────
+  const decodeSegment = (buf, offset, charCount, isUnicode) => {
+    let out = "";
+    if (isUnicode) {
+      for (let i = 0; i < charCount; i++)
+        out += String.fromCharCode(buf[offset + i*2] | (buf[offset + i*2 + 1] << 8));
+    } else {
+      for (let i = 0; i < charCount; i++) {
+        const b = buf[offset + i];
+        out += b < 128 ? String.fromCharCode(b) :
+          "\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff"[b - 0xC0] || "?";
+      }
+    }
+    return out;
+  };
+
   const handleFileLoad = async (file) => {
     if (!file) return;
     setLoadError("");
     try {
       const buf = await file.arrayBuffer();
-      const data = new Uint8Array(buf);
+      const raw = new Uint8Array(buf);
+      const dv  = new DataView(buf);
 
-      // Extract strings via heuristic scan (same method used to build ALL_BRANDS)
-      const sst = [];
-      for (let i = 0; i < data.length - 10; i++) {
-        const length = data[i] | (data[i+1] << 8);
-        const flag   = data[i+2];
-        if (length >= 2 && length <= 120 && flag === 0x00) {
-          let ok = true;
-          for (let j = 0; j < length; j++) {
-            const b = data[i+3+j];
-            if (b < 0x20 || b > 0x7e) { ok = false; break; }
-          }
-          if (ok) {
-            const text = String.fromCharCode(...data.slice(i+3, i+3+length)).trim();
-            if (text) sst.push(text);
+      // ── 1. Extraer Workbook stream del contenedor OLE2 ──────────────────────
+      const sectorSize = 1 << dv.getUint16(0x1E, true);
+      const fatSectors = [];
+      for (let i = 0; i < 109; i++) {
+        const s = dv.getUint32(0x4C + i * 4, true);
+        if (s < 0xFFFFFFFE) fatSectors.push(s);
+      }
+      const fat = [];
+      for (const s of fatSectors) {
+        const off = (s + 1) * sectorSize;
+        for (let i = 0; i < sectorSize / 4; i++)
+          fat.push(dv.getUint32(off + i * 4, true));
+      }
+      const readChain = (start, maxBytes = Infinity) => {
+        const parts = []; let s = start; const visited = new Set(); let total = 0;
+        while (s < 0xFFFFFFFE && !visited.has(s) && total < maxBytes) {
+          visited.add(s);
+          const off = (s + 1) * sectorSize;
+          parts.push(raw.slice(off, off + sectorSize));
+          total += sectorSize;
+          s = s < fat.length ? fat[s] : 0xFFFFFFFE;
+        }
+        const out = new Uint8Array(total);
+        let pos = 0; for (const p of parts) { out.set(p, pos); pos += p.byteLength; }
+        return out;
+      };
+      const dirSector = dv.getUint32(0x30, true);
+      const dirData   = readChain(dirSector);
+      const dirDV     = new DataView(dirData.buffer);
+      let wbStart = 0, wbSize = 0;
+      for (let i = 0; i < dirData.length / 128; i++) {
+        const off  = i * 128;
+        const nl   = dirDV.getUint16(off + 64, true);
+        const type = dirData[off + 66];
+        if (nl > 0 && nl <= 64 && type === 2) {
+          let name = "";
+          for (let j = 0; j < nl - 2; j += 2)
+            name += String.fromCharCode(dirDV.getUint16(off + j, true));
+          if (name === "Workbook" || name === "Book") {
+            wbStart = dirDV.getUint32(off + 116, true);
+            wbSize  = dirDV.getUint32(off + 120, true);
+            break;
           }
         }
       }
+      const wb  = readChain(wbStart).slice(0, wbSize);
+      const wdv = new DataView(wb.buffer, wb.byteOffset, wb.byteLength);
 
-      // Raw scan LABELSST (0xFD 0x00, len=10) — captura TODAS las hojas
+      // ── 2. Localizar SST y recolectar todos sus bytes (+ CONTINUE) ──────────
+      let sstPos = -1;
+      { let p = 0;
+        while (p < wb.length - 4) {
+          const rt = wdv.getUint16(p, true);
+          const rl = wdv.getUint16(p + 2, true);
+          if (rt === 0x00FC) { sstPos = p; break; }
+          p += 4 + (rl > 0 && rl < 65536 ? rl : 0) || (p + 1);
+          if (rl === 0 || rl >= 65536) p = p; // avoid infinite loop on bad records
+        }
+      }
+      if (sstPos < 0) throw new Error("SST no encontrada en el archivo");
+
+      const sstLen = wdv.getUint16(sstPos + 2, true);
+      // boundaries[i] = offset dentro de sstRaw donde empieza el byte grbit del CONTINUE i
+      const sstChunks = [wb.slice(sstPos + 4, sstPos + 4 + sstLen)];
+      const boundaries = [];
+      let npos = sstPos + 4 + sstLen;
+      while (npos < wb.length - 4) {
+        const nrt = wdv.getUint16(npos, true);
+        const nrl = wdv.getUint16(npos + 2, true);
+        if (nrt === 0x003C) {
+          boundaries.push(sstChunks.reduce((s,c) => s + c.length, 0));
+          sstChunks.push(wb.slice(npos + 4, npos + 4 + nrl));
+          npos += 4 + nrl;
+        } else break;
+      }
+      // Concatenar en un solo buffer
+      const sstTotalLen = sstChunks.reduce((s, c) => s + c.length, 0);
+      const sstRaw = new Uint8Array(sstTotalLen);
+      { let off = 0; for (const ch of sstChunks) { sstRaw.set(ch, off); off += ch.length; } }
+      const sstDV = new DataView(sstRaw.buffer);
+
+      const sstUnique = sstDV.getUint32(4, true);
+      const boundarySet = new Set(boundaries);
+
+      // ── 3. Parsear strings del SST manejando cruces de CONTINUE ────────────
+      const sst = [];
+      let sp = 8; // saltar header de 8 bytes
+      let curUni = false;
+
+      for (let idx = 0; idx < sstUnique; idx++) {
+        if (sp + 3 > sstRaw.length) break;
+        const cc    = sstDV.getUint16(sp, true);
+        const flags = sstRaw[sp + 2];
+        sp += 3;
+        curUni = !!(flags & 0x01);
+        const hasRich = !!(flags & 0x08);
+        const hasPhon = !!(flags & 0x04);
+        const rc = hasRich ? (sp += 2, sstDV.getUint16(sp - 2, true)) : 0;
+        const pl = hasPhon ? (sp += 4, sstDV.getUint32(sp - 4, true)) : 0;
+
+        let charsDone = 0;
+        let textParts = [];
+        while (charsDone < cc) {
+          const bpc = curUni ? 2 : 1;
+          const charsLeft = cc - charsDone;
+          // próximo boundary después de sp
+          let nextB = Infinity;
+          for (const b of boundaries) { if (b > sp && b < nextB) nextB = b; }
+          const bytesNeeded = charsLeft * bpc;
+          if (nextB < sp + bytesNeeded) {
+            // leer hasta el boundary
+            const charsToHere = Math.floor((nextB - sp) / bpc);
+            if (charsToHere > 0) {
+              textParts.push(decodeSegment(sstRaw, sp, charsToHere, curUni));
+              sp += charsToHere * bpc;
+              charsDone += charsToHere;
+            }
+            sp = nextB; // saltar al boundary
+            if (sp < sstRaw.length) { curUni = !!(sstRaw[sp] & 1); sp++; }
+          } else {
+            textParts.push(decodeSegment(sstRaw, sp, charsLeft, curUni));
+            sp += charsLeft * bpc;
+            charsDone = cc;
+          }
+        }
+        sst.push(textParts.join("").trim());
+        sp += rc * 4 + pl; // saltar rich text runs y phonetic
+      }
+
+      // ── 4. Leer LABELSST y RK del workbook ──────────────────────────────────
       const labels = {};
       const prices = {};
-      for (let i = 0; i < data.length - 14; i++) {
-        if (data[i] === 0xFD && data[i+1] === 0x00) {
-          const rlen = data[i+2] | (data[i+3] << 8);
-          if (rlen === 10) {
-            const row = data[i+4] | (data[i+5] << 8);
-            const col = data[i+6] | (data[i+7] << 8);
-            const idx = data[i+10] | (data[i+11]<<8) | (data[i+12]<<16) | (data[i+13]<<24);
-            if (idx < sst.length) {
-              if (!labels[row]) labels[row] = {};
-              if (labels[row][col] === undefined) labels[row][col] = sst[idx];
-            }
+      for (let i = 0; i < wb.length - 14; i++) {
+        const rt = wdv.getUint16(i, true);
+        const rl = wdv.getUint16(i + 2, true);
+        if (rt === 0x00FD && rl === 10) {
+          const row = wdv.getUint16(i + 4, true);
+          const col = wdv.getUint16(i + 6, true);
+          const idx = wdv.getUint32(i + 10, true);
+          if ((col === 0 || col === 1) && idx < sst.length) {
+            if (!labels[row]) labels[row] = {};
+            if (labels[row][col] === undefined) labels[row][col] = sst[idx];
           }
         }
-        if (data[i] === 0x7E && data[i+1] === 0x02) {
-          const rlen = data[i+2] | (data[i+3] << 8);
-          if (rlen === 10) {
-            const row = data[i+4] | (data[i+5] << 8);
-            const col = data[i+6] | (data[i+7] << 8);
-            if (col === 2 && prices[row] === undefined) {
-              let rk = (data[i+10] | (data[i+11]<<8) | (data[i+12]<<16) | (data[i+13]<<24)) | 0;
-              let val;
-              if (rk & 2) { val = rk >> 2; }
-              else {
-                const b8 = new ArrayBuffer(8); const dv = new DataView(b8);
-                dv.setUint32(4, (rk & ~3) >>> 0, true);
-                val = dv.getFloat64(0, true);
-              }
-              if (rk & 1) val /= 100;
-              if (val > 500) prices[row] = Math.round(val);
+        if (rt === 0x027E && rl === 10) {
+          const row = wdv.getUint16(i + 4, true);
+          const col = wdv.getUint16(i + 6, true);
+          if (col === 2 && prices[row] === undefined) {
+            const rkv = wdv.getUint32(i + 10, true);
+            let val;
+            if (rkv & 2) { val = rkv >> 2; }
+            else {
+              const b8 = new ArrayBuffer(8); const dv8 = new DataView(b8);
+              dv8.setUint32(4, (rkv & ~3) >>> 0, true);
+              val = dv8.getFloat64(0, true);
             }
+            if (rkv & 1) val /= 100;
+            if (val > 0) prices[row] = Math.round(val);
           }
         }
       }
 
-      // Build brands — price is always on the SAME row as the code
+      // ── 5. Construir marcas ──────────────────────────────────────────────────
       const newBrands = {};
       const seen = new Set();
       const isCode = (s) => /^\d{3}-/.test(s);
@@ -175,10 +298,9 @@ export default function App() {
         const c1 = (labels[row][1] || "").trim().toUpperCase();
         const price = prices[row] || null;
         const b0 = isCode(c0), b1 = isCode(c1);
-
-        if (b0 && b1)        { addProduct(c0, "",  price); addProduct(c1, "",  price); }
-        else if (b0 && !b1)  { addProduct(c0, c1,  price); }
-        else if (!b0 && b1)  { addProduct(c1, c0,  price); }
+        if (b0 && b1)       { addProduct(c0, "", price); addProduct(c1, "", price); }
+        else if (b0 && !b1) { addProduct(c0, c1, price); }
+        else if (!b0 && b1) { addProduct(c1, c0, price); }
       }
 
       const total = Object.values(newBrands).reduce((s,b) => s+b.codes.length, 0);
